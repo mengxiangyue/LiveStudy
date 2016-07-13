@@ -1,14 +1,15 @@
 //
 //  ViewController.m
-//  LiveStudy
 //
-//  Created by wenba201600164 on 16/7/13.
-//  Copyright © 2016年 wenba. All rights reserved.
 //
 
 #import "ViewController.h"
+#import "VideoCapture.h"
+@import AVFoundation;
 
 @interface ViewController ()
+
+@property (strong, nonatomic) VideoCapture *videoCapture;
 
 @end
 
@@ -16,12 +17,13 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+    
+    self.videoCapture = [[VideoCapture alloc] init];
+    [self.videoCapture setPreview:self.view];
+    [self.videoCapture start];
+    
+    
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
 
 @end
