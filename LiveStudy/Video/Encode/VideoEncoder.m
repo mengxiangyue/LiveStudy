@@ -105,7 +105,7 @@ static void VideoCompressonOutputCallback(void *outputCallbackRefCon, void *sour
     if (!dict) {
         return;
     }
-    BOOL isKeyframe = !CFDictionaryContainsKey(dict, kCMSampleAttachmentKey_NotSync);
+    BOOL isKeyframe = !CFDictionaryContainsKey(dict, kCMSampleAttachmentKey_NotSync); // Not Sync Sample
     uint64_t timeStamp = [((__bridge_transfer NSNumber *)sourceFrameRefCon) longLongValue];
     
     
@@ -143,7 +143,7 @@ static void VideoCompressonOutputCallback(void *outputCallbackRefCon, void *sour
     
     CMBlockBufferRef dataBuffer = CMSampleBufferGetDataBuffer(sampleBuffer);
     size_t length, totalLength;
-    char *dataPointer;
+    char *dataPointer; // 注意这里是指针，所以后面才能够根据这个指针拷贝对应的数据
     OSStatus statusCodeRet = CMBlockBufferGetDataPointer(dataBuffer, 0, &length, &totalLength, &dataPointer);
     if (statusCodeRet == noErr) {
         size_t bufferOffset = 0;
@@ -153,6 +153,7 @@ static void VideoCompressonOutputCallback(void *outputCallbackRefCon, void *sour
             uint32_t NALUnitLength = 0;
             memcpy(&NALUnitLength, dataPointer + bufferOffset, AVCCHeaderLength);
             
+            // http://blog.csdn.net/sunshine1314/article/details/2309655 参考一下 Big Endian 字节序
             NALUnitLength = CFSwapInt32BigToHost(NALUnitLength);
             
             if(videoEncoder.enabledWriteVideoFile){
@@ -168,8 +169,6 @@ static void VideoCompressonOutputCallback(void *outputCallbackRefCon, void *sour
                 
                 fwrite(data.bytes, 1,data.length,videoEncoder.fp);
             }
-            
-            
             bufferOffset += AVCCHeaderLength + NALUnitLength;
             
         }
