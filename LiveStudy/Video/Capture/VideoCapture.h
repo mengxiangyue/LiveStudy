@@ -15,8 +15,17 @@
 
 @import AVFoundation;
 
+@class VideoCapture;
+@protocol VideoCaptureDelegate <NSObject>
+
+- (void)captureOutput:(nullable VideoCapture *)capture pixelBuffer:(nullable CVImageBufferRef)pixelBuffer;
+
+@end
+
 
 @interface VideoCapture : NSObject
+
+@property (nullable,nonatomic, weak) id<VideoCaptureDelegate> delegate;
 
 - (void)setPreview:(UIView *)preview;
 - (void)start;

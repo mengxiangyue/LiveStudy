@@ -14,6 +14,7 @@
 		74D1B7EF1D368299004F8BB4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 74D1B7EE1D368299004F8BB4 /* Assets.xcassets */; };
 		74D1B7F21D368299004F8BB4 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 74D1B7F01D368299004F8BB4 /* LaunchScreen.storyboard */; };
 		74D1B8021D368751004F8BB4 /* VideoCapture.m in Sources */ = {isa = PBXBuildFile; fileRef = 74D1B8011D368751004F8BB4 /* VideoCapture.m */; };
+		74D1B8051D37173F004F8BB4 /* VideoEncoder.m in Sources */ = {isa = PBXBuildFile; fileRef = 74D1B8041D37173F004F8BB4 /* VideoEncoder.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +30,8 @@
 		74D1B7F31D368299004F8BB4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		74D1B8001D368751004F8BB4 /* VideoCapture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoCapture.h; sourceTree = "<group>"; };
 		74D1B8011D368751004F8BB4 /* VideoCapture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoCapture.m; sourceTree = "<group>"; };
+		74D1B8031D37173F004F8BB4 /* VideoEncoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoEncoder.h; sourceTree = "<group>"; };
+		74D1B8041D37173F004F8BB4 /* VideoEncoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoEncoder.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +118,8 @@
 		74D1B7FC1D3685AD004F8BB4 /* Encode */ = {
 			isa = PBXGroup;
 			children = (
+				74D1B8031D37173F004F8BB4 /* VideoEncoder.h */,
+				74D1B8041D37173F004F8BB4 /* VideoEncoder.m */,
 			);
 			path = Encode;
 			sourceTree = "<group>";
@@ -214,6 +219,7 @@
 				74D1B8021D368751004F8BB4 /* VideoCapture.m in Sources */,
 				74D1B7EA1D368299004F8BB4 /* ViewController.m in Sources */,
 				74D1B7E71D368299004F8BB4 /* AppDelegate.m in Sources */,
+				74D1B8051D37173F004F8BB4 /* VideoEncoder.m in Sources */,
 				74D1B7E41D368299004F8BB4 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

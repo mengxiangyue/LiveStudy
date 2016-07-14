@@ -124,7 +124,10 @@
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
 {
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer); // 这个是获取对应的图像信息
-    NSLog(@"开始输出图像捕获了");
+//    NSLog(@"开始输出图像捕获了");
+    if ([self.delegate respondsToSelector:@selector(captureOutput:pixelBuffer:)]) {
+        [self.delegate captureOutput:self pixelBuffer:imageBuffer];
+    }
 }
 
 @end
