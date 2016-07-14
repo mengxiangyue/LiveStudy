@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		74927B931D37DB3B009DA4FF /* VideoFrame.m in Sources */ = {isa = PBXBuildFile; fileRef = 74927B921D37DB3B009DA4FF /* VideoFrame.m */; };
+		74927B961D37E411009DA4FF /* StreamRtmpSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 74927B951D37E411009DA4FF /* StreamRtmpSocket.m */; };
 		74D1B7E41D368299004F8BB4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 74D1B7E31D368299004F8BB4 /* main.m */; };
 		74D1B7E71D368299004F8BB4 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 74D1B7E61D368299004F8BB4 /* AppDelegate.m */; };
 		74D1B7EA1D368299004F8BB4 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 74D1B7E91D368299004F8BB4 /* ViewController.m */; };
@@ -21,6 +22,8 @@
 /* Begin PBXFileReference section */
 		74927B911D37DB3B009DA4FF /* VideoFrame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoFrame.h; sourceTree = "<group>"; };
 		74927B921D37DB3B009DA4FF /* VideoFrame.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoFrame.m; sourceTree = "<group>"; };
+		74927B941D37E411009DA4FF /* StreamRtmpSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StreamRtmpSocket.h; sourceTree = "<group>"; };
+		74927B951D37E411009DA4FF /* StreamRtmpSocket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StreamRtmpSocket.m; sourceTree = "<group>"; };
 		74D1B7DF1D368299004F8BB4 /* LiveStudy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LiveStudy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		74D1B7E31D368299004F8BB4 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		74D1B7E51D368299004F8BB4 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -146,6 +149,8 @@
 		74D1B7FF1D3685AD004F8BB4 /* Upload */ = {
 			isa = PBXGroup;
 			children = (
+				74927B941D37E411009DA4FF /* StreamRtmpSocket.h */,
+				74927B951D37E411009DA4FF /* StreamRtmpSocket.m */,
 			);
 			path = Upload;
 			sourceTree = "<group>";
@@ -227,6 +232,7 @@
 				74D1B8051D37173F004F8BB4 /* VideoEncoder.m in Sources */,
 				74D1B7E41D368299004F8BB4 /* main.m in Sources */,
 				74927B931D37DB3B009DA4FF /* VideoFrame.m in Sources */,
+				74927B961D37E411009DA4FF /* StreamRtmpSocket.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

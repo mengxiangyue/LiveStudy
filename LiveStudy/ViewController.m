@@ -6,6 +6,7 @@
 #import "ViewController.h"
 #import "VideoCapture.h"
 #import "VideoEncoder.h"
+#import "StreamRtmpSocket.h"
 @import AVFoundation;
 
 #define NOW (CACurrentMediaTime()*1000)
@@ -14,6 +15,8 @@
 @property (strong, nonatomic) VideoCapture *videoCapture;
 
 @property (strong, nonatomic) VideoEncoder *videoEncoder;
+
+@property (strong, nonatomic) StreamRtmpSocket *rtmpSocket;
 
 @property (nonatomic, assign) uint64_t timestamp;
 @property (nonatomic, assign) BOOL isFirstFrame;
@@ -32,13 +35,16 @@
     self.videoCapture = [[VideoCapture alloc] init];
     self.videoCapture.delegate = self;
     [self.videoCapture setPreview:self.view];
-    [self.videoCapture start];
     
     // H264编码
     _lock = dispatch_semaphore_create(1);
     self.videoEncoder = [[VideoEncoder alloc] init];
     self.videoEncoder.delegate = self;
     
+    self.rtmpSocket = [[StreamRtmpSocket alloc] init];
+    
+    
+    [self.videoCapture start];
 }
 
 #pragma mark - VideoCaptureDelegate
@@ -49,6 +55,7 @@
 #pragma mark - VideoEncodingDelegate
 - (void)videoEncoder:(nonnull VideoEncoder *)encoder videoFrame:(nullable VideoFrame *)frame {
     NSLog(@"编码成功后回调");
+    [self.rtmpSocket sendVideoFrame:frame];
 }
 
 - (uint64_t)currentTimestamp{
