@@ -17,4 +17,7 @@
 ##Tag（表示关键节点功能）
 * 0.1 完成图像的捕获，通过摄像头获取图像数据   
 * 0.2 使用硬件进行H264编码，并保存H264裸流为文件，文件名称IOSCamDemo.h264，使用VLC能够正常播放   
-* 0.3 将视频数据封装成FLV数据格式，因为RTMP推流需要使用FLV格式（但是FLV去掉了头部，只有数据部分）
+* 0.3 将视频数据封装成FLV数据格式，因为RTMP推流需要使用FLV格式（但是FLV去掉了头部，只有数据部分）  
+ 参考：  
+ <http://www.cnblogs.com/chef/archive/2012/07/18/2597279.html>   
+ <http://blog.sina.com.cn/s/blog_51396f890102ezbn.html>
