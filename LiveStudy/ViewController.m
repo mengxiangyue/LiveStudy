@@ -9,7 +9,7 @@
 @import AVFoundation;
 
 #define NOW (CACurrentMediaTime()*1000)
-@interface ViewController () <VideoCaptureDelegate>
+@interface ViewController () <VideoCaptureDelegate, VideoEncodingDelegate>
 
 @property (strong, nonatomic) VideoCapture *videoCapture;
 
@@ -28,19 +28,27 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    // 视频捕获
     self.videoCapture = [[VideoCapture alloc] init];
     self.videoCapture.delegate = self;
     [self.videoCapture setPreview:self.view];
     [self.videoCapture start];
     
+    // H264编码
     _lock = dispatch_semaphore_create(1);
     self.videoEncoder = [[VideoEncoder alloc] init];
+    self.videoEncoder.delegate = self;
     
 }
 
 #pragma mark - VideoCaptureDelegate
 - (void)captureOutput:(nullable VideoCapture *)capture pixelBuffer:(nullable CVImageBufferRef)pixelBuffer {
     [self.videoEncoder encodeVideoData:pixelBuffer timeStamp:[self currentTimestamp]];
+}
+
+#pragma mark - VideoEncodingDelegate
+- (void)videoEncoder:(nonnull VideoEncoder *)encoder videoFrame:(nullable VideoFrame *)frame {
+    NSLog(@"编码成功后回调");
 }
 
 - (uint64_t)currentTimestamp{

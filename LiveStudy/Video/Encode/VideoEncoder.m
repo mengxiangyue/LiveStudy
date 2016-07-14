@@ -7,6 +7,7 @@
 //
 
 #import "VideoEncoder.h"
+
 @import VideoToolbox;
 
 @interface VideoEncoder ()
@@ -155,6 +156,17 @@ static void VideoCompressonOutputCallback(void *outputCallbackRefCon, void *sour
             
             // http://blog.csdn.net/sunshine1314/article/details/2309655 参考一下 Big Endian 字节序
             NALUnitLength = CFSwapInt32BigToHost(NALUnitLength);
+            
+            VideoFrame *videoFrame = [[VideoFrame alloc] init];
+            videoFrame.timestamp = timeStamp;
+            videoFrame.data = [[NSData alloc] initWithBytes:(dataPointer + bufferOffset + AVCCHeaderLength) length:NALUnitLength];
+            videoFrame.isKeyFrame = isKeyframe;
+            videoFrame.sps = videoEncoder.sps;
+            videoFrame.pps = videoEncoder.pps;
+            
+            if ([videoEncoder.delegate respondsToSelector:@selector(videoEncoder:videoFrame:)]) {
+                [videoEncoder.delegate videoEncoder:videoEncoder videoFrame:videoFrame];
+            }
             
             if(videoEncoder.enabledWriteVideoFile){
                 NSMutableData *data = [[NSMutableData alloc] init];
