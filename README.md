@@ -1,4 +1,5 @@
 # LiveStudy
+该学习工程参考 [LFLiveKit](https://github.com/LaiFengiOS/LFLiveKit) 编写。
 
 ## 步骤
 ### 视频
