@@ -93,7 +93,7 @@
 
 #pragma mark -- VideoCallBack
 static void VideoCompressonOutputCallback(void *outputCallbackRefCon, void *sourceFrameRefCon, OSStatus status, VTEncodeInfoFlags infoFlags, CMSampleBufferRef sampleBuffer) {
-    NSLog(@"didCompressH264 called with status %d infoFlags %d", (int)status, (int)infoFlags);
+//    NSLog(@"didCompressH264 called with status %d infoFlags %d", (int)status, (int)infoFlags);
     if (status != 0) return;
     if (!sampleBuffer) {
         return;

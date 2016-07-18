@@ -1,56 +1,122 @@
 //
-//  StreamRtmpSocket.m
-//  LiveStudy
+//  LFStreamRtmpSocket.m
+//  LFLiveKit
 //
-//  Created by wenba201600164 on 16/7/14.
-//  Copyright © 2016年 wenba. All rights reserved.
+//  Created by admin on 16/5/18.
+//  Copyright © 2016年 live Interactive. All rights reserved.
 //
 
-#import "StreamRtmpSocket.h"
+#import "LFStreamRtmpSocket.h"
 #import "rtmp.h"
 
-@interface StreamRtmpSocket ()
+#define DATA_ITEMS_MAX_COUNT 100
+#define RTMP_DATA_RESERVE_SIZE 400
+#define RTMP_HEAD_SIZE (sizeof(RTMPPacket)+RTMP_MAX_HEADER_SIZE)
 
-// todo 这个需要进行一定的优化 这里只是最简单的保存所有的Frame
-@property (strong, nonatomic) NSMutableArray *buffer;
-@property (assign, nonatomic) BOOL isSending;  // 用于保证同时只有一帧在发送
-@property (assign, nonatomic) BOOL sendVideoHeader; // 是否已经发送过视频同步包
+#define SAVC(x)    static const AVal av_##x = AVC(#x)
 
-@property (assign, nonatomic) BOOL isConnecting;
-@property (assign, nonatomic) BOOL isConnected;
-@property (assign, nonatomic) PILI_RTMP *rtmp;
-@property (assign, nonatomic) RTMPError error;
+static const AVal av_setDataFrame = AVC("@setDataFrame");
+static const AVal av_SDKVersion = AVC("LFLiveKit 1.5.2");
+SAVC(onMetaData);
+SAVC(duration);
+SAVC(width);
+SAVC(height);
+SAVC(videocodecid);
+SAVC(videodatarate);
+SAVC(framerate);
+SAVC(audiocodecid);
+SAVC(audiodatarate);
+SAVC(audiosamplerate);
+SAVC(audiosamplesize);
+SAVC(audiochannels);
+SAVC(stereo);
+SAVC(encoder);
+SAVC(av_stereo);
+SAVC(fileSize);
+SAVC(avc1);
+SAVC(mp4a);
+
+@interface LFStreamRtmpSocket ()
+{
+    PILI_RTMP* _rtmp;
+}
+@property (nonatomic, strong) LFStreamingBuffer *buffer;
+@property (nonatomic, strong) dispatch_queue_t socketQueue;
+//错误信息
+@property (nonatomic, assign) RTMPError error;
+@property (nonatomic, assign) NSInteger retryTimes4netWorkBreaken;
+
+@property (nonatomic, assign) BOOL isSending;
+@property (nonatomic, assign) BOOL isConnected;
+@property (nonatomic, assign) BOOL isConnecting;
+@property (nonatomic, assign) BOOL isReconnecting;
+
+@property (nonatomic, assign) BOOL sendVideoHead;
+@property (nonatomic, assign) BOOL sendAudioHead;
 
 @end
 
-@implementation StreamRtmpSocket
+@implementation LFStreamRtmpSocket
 
-- (instancetype)init
-{
-    self = [super init];
-    if (self) {
-        self.buffer = [[NSMutableArray alloc] init];
-    }
-    return self;
+- (void) start{
+    dispatch_async(self.socketQueue, ^{
+        if(_isConnecting) return;
+        if(_rtmp != NULL) return;
+        
+        [self RTMP264_Connect:(char*)[@"rtmp://192.168.72.49:5920/rtmplive/room" cStringUsingEncoding:NSASCIIStringEncoding]];
+    });
 }
 
-#pragma mark - RTMP Connect
-- (void)start {
-    if (self.isConnecting) {
-        return;
-    }
-    if (self.rtmp != NULL) {
-        return;
-    }
-    [self RTMP264_Connect:(char*)[@"rtmp://192.168.72.49:5920/rtmplive/room" cStringUsingEncoding:NSASCIIStringEncoding]];
+- (void) stop{
+    dispatch_async(self.socketQueue, ^{
+        if(_rtmp != NULL){
+            PILI_RTMP_Close(_rtmp, &_error);
+            PILI_RTMP_Free(_rtmp);
+            _rtmp = NULL;
+        }
+        [self clean];
+    });
 }
 
-- (void)stop {
-    if (self.rtmp != NULL) {
-        PILI_RTMP_Close(self.rtmp, &_error);
-        PILI_RTMP_Free(self.rtmp);
+- (void) sendFrame:(LFFrame*)frame{
+    __weak typeof(self) _self = self;
+    dispatch_async(self.socketQueue, ^{
+        __strong typeof(_self) self = _self;
+        if(!frame) return;
+        [self.buffer appendObject:frame];
+        [self sendFrame];
+    });
+}
+
+#pragma mark -- CustomMethod
+- (void)sendFrame{
+    if(!self.isSending && self.buffer.list.count > 0){
+        self.isSending = YES;
+    
+        if(!_isConnected ||  _isReconnecting || _isConnecting || !_rtmp) return;
+    
+        // 调用发送接口
+        LFFrame *frame = [self.buffer popFirstObject];
+        if([frame isKindOfClass:[LFVideoFrame class]]){
+            if(!self.sendVideoHead){
+                self.sendVideoHead = YES;
+                [self sendVideoHeader:(LFVideoFrame*)frame];
+            }else{
+                [self sendVideo:(LFVideoFrame*)frame];
+            }
+        }
     }
-    [self clean];
+}
+
+- (void)clean{
+    _isConnecting = NO;
+    _isReconnecting = NO;
+    _isSending = NO;
+    _isConnected = NO;
+    _sendAudioHead = NO;
+    _sendVideoHead = NO;
+    [self.buffer removeAllObject];
+    self.retryTimes4netWorkBreaken = 0;
 }
 
 -(NSInteger) RTMP264_Connect:(char *)push_url{
@@ -59,7 +125,6 @@
     if(_isConnecting) return -1;
     
     _isConnecting = YES;
-    
     if(_rtmp != NULL){
         PILI_RTMP_Close(_rtmp, &_error);
         PILI_RTMP_Free(_rtmp);
@@ -87,58 +152,26 @@
         goto Failed;
     }
     
+//    [self sendMetaData];
     
-    //    [self sendMetaData];
-    
-    self.isConnected = YES;
-    self.isConnecting = NO;
-    self.isSending = NO;
-    NSLog(@"连接成功");
+    _isConnected = YES;
+    _isConnecting = NO;
+    _isReconnecting = NO;
+    _isSending = NO;
+    _retryTimes4netWorkBreaken = 0;
     return 0;
     
 Failed:
-    NSLog(@"连接失败");
     PILI_RTMP_Close(_rtmp, &_error);
     PILI_RTMP_Free(_rtmp);
     [self clean];
     return -1;
 }
 
-- (void)clean { // todo
 
-}
-
-#pragma mark -RTMP Send
-- (void)sendVideoFrame:(nullable VideoFrame *)frame {
-    // todo 这里需要放到异步线程里面 以免影响主线程
-    if (!frame) {
-        return;
-    }
-    [self.buffer addObject:frame];
-    [self sendFrame];
-}
-
-- (void)sendFrame {
-    if (!self.isSending && [self.buffer count] > 0) {
-        self.isSending = YES;
-        id frame = [self.buffer objectAtIndex:0];
-        [self.buffer removeObjectAtIndex:0];
-        if ([frame isKindOfClass:[VideoFrame class]]) {
-            VideoFrame *videoFrame = (VideoFrame *)frame;
-            if (!self.sendVideoHeader) {
-                self.sendVideoHeader = YES;
-                NSLog(@"视频同步报");
-                [self sendVideoHeader:videoFrame];
-            } else {
-                NSLog(@"数据包");
-                [self sendVideo:videoFrame];
-            }
-        }
-    }
-}
 
 // 视频同步包
-- (void)sendVideoHeader:(VideoFrame*)videoFrame {
+- (void)sendVideoHeader:(LFVideoFrame*)videoFrame {
     if(!videoFrame || !videoFrame.sps || !videoFrame.pps) return;
     
     unsigned char * body=NULL;
@@ -148,7 +181,7 @@ Failed:
     const char *pps = videoFrame.pps.bytes;
     NSInteger sps_len = videoFrame.sps.length;
     NSInteger pps_len = videoFrame.pps.length;
-    
+
     body = (unsigned char*)malloc(rtmpLength);
     memset(body,0,rtmpLength);
     
@@ -193,7 +226,7 @@ Failed:
 }
 
 // 普通数据包
-- (void)sendVideo:(VideoFrame*)frame{
+- (void)sendVideo:(LFVideoFrame*)frame{
     if(!frame || !frame.data || frame.data.length < 11) return;
     
     NSInteger i = 0;
@@ -212,7 +245,7 @@ Failed:
     body[i++] = 0x00;
     body[i++] = 0x00;
     body[i++] = 0x00;
-    // NALU size 24bit
+    // NALU size
     body[i++] = (frame.data.length >> 24) & 0xff;
     body[i++] = (frame.data.length >> 16) & 0xff;
     body[i++] = (frame.data.length >>  8) & 0xff;
@@ -225,7 +258,6 @@ Failed:
 }
 
 -(NSInteger) sendPacket:(unsigned int)nPacketType data:(unsigned char *)data size:(NSInteger) size nTimestamp:(uint64_t) nTimestamp{
-    NSLog(@"时间戳%llu", nTimestamp);
     NSInteger rtmpLength = size;
     PILI_RTMPPacket rtmp_pack;
     PILI_RTMPPacket_Reset(&rtmp_pack);
@@ -253,15 +285,31 @@ Failed:
     if (PILI_RTMP_IsConnected(_rtmp)){
         int success = PILI_RTMP_SendPacket(_rtmp,packet,0,&_error);
         if(success){
-            NSLog(@"发送成功");
             self.isSending = NO;
             [self sendFrame];
         }
         return success;
-    } else {
-        NSLog(@"发送失败");
     }
+    
     return -1;
+}
+
+
+
+
+#pragma mark -- Getter Setter
+- (dispatch_queue_t)socketQueue{
+    if(!_socketQueue){
+        _socketQueue = dispatch_queue_create("com.youku.LaiFeng.live.socketQueue", NULL);
+    }
+    return _socketQueue;
+}
+
+- (LFStreamingBuffer*)buffer{
+    if(!_buffer){
+        _buffer = [[LFStreamingBuffer alloc] init];
+    }
+    return _buffer;
 }
 
 @end

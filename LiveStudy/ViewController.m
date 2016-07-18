@@ -56,7 +56,7 @@
 
 #pragma mark - VideoEncodingDelegate
 - (void)videoEncoder:(nonnull VideoEncoder *)encoder videoFrame:(nullable VideoFrame *)frame {
-    NSLog(@"编码成功后回调");
+//    NSLog(@"编码成功后回调");
     [self.rtmpSocket sendVideoFrame:frame];
 }
 
