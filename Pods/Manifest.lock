@@ -1,0 +1,10 @@
+PODS:
+  - pili-librtmp (1.0.3)
+
+DEPENDENCIES:
+  - pili-librtmp
+
+SPEC CHECKSUMS:
+  pili-librtmp: 50faa17413c635cca5ceccb1a8f9f6acc6587a45
+
+COCOAPODS: 0.39.0

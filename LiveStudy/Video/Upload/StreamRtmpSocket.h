@@ -10,6 +10,10 @@
 #import "VideoFrame.h"
 
 @interface StreamRtmpSocket : NSObject
+
+- (void)start;
+- (void)start;
+
 #pragma mark - Video
 - (void)sendVideoFrame:(nullable VideoFrame *)frame;
 

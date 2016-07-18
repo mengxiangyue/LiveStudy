@@ -7,13 +7,19 @@
 //
 
 #import "StreamRtmpSocket.h"
+#import "rtmp.h"
 
 @interface StreamRtmpSocket ()
 
-// 这个需要进行一定的优化 这里只是最简单的保存所有的Frame
+// todo 这个需要进行一定的优化 这里只是最简单的保存所有的Frame
 @property (strong, nonatomic) NSMutableArray *buffer;
 @property (assign, nonatomic) BOOL isSending;  // 用于保证同时只有一帧在发送
 @property (assign, nonatomic) BOOL sendVideoHeader; // 是否已经发送过视频同步包
+
+@property (assign, nonatomic) BOOL isConnecting;
+@property (assign, nonatomic) BOOL isConnected;
+@property (assign, nonatomic) PILI_RTMP *rtmp;
+@property (assign, nonatomic) RTMPError error;
 
 @end
 
@@ -28,6 +34,81 @@
     return self;
 }
 
+#pragma mark - RTMP Connect
+- (void)start {
+    if (self.isConnecting) {
+        return;
+    }
+    if (self.rtmp != NULL) {
+        return;
+    }
+    [self RTMP264_Connect:(char*)[@"rtmp://192.168.72.49:5920/rtmplive/room" cStringUsingEncoding:NSASCIIStringEncoding]];
+}
+
+- (void)stop {
+    if (self.rtmp != NULL) {
+        PILI_RTMP_Close(self.rtmp, &_error);
+        PILI_RTMP_Free(self.rtmp);
+    }
+    [self clean];
+}
+
+-(NSInteger) RTMP264_Connect:(char *)push_url{
+    //由于摄像头的timestamp是一直在累加，需要每次得到相对时间戳
+    //分配与初始化
+    if(_isConnecting) return -1;
+    
+    _isConnecting = YES;
+    
+    if(_rtmp != NULL){
+        PILI_RTMP_Close(_rtmp, &_error);
+        PILI_RTMP_Free(_rtmp);
+    }
+    
+    _rtmp = PILI_RTMP_Alloc();
+    PILI_RTMP_Init(_rtmp);
+    
+    //设置URL
+    if (PILI_RTMP_SetupURL(_rtmp, push_url, &_error) < 0){
+        //log(LOG_ERR, "RTMP_SetupURL() failed!");
+        goto Failed;
+    }
+    
+    //设置可写，即发布流，这个函数必须在连接前使用，否则无效
+    PILI_RTMP_EnableWrite(_rtmp);
+    
+    //连接服务器
+    if (PILI_RTMP_Connect(_rtmp, NULL, &_error) < 0){
+        goto Failed;
+    }
+    
+    //连接流
+    if (PILI_RTMP_ConnectStream(_rtmp, 0, &_error) < 0) {
+        goto Failed;
+    }
+    
+    
+    //    [self sendMetaData];
+    
+    self.isConnected = YES;
+    self.isConnecting = NO;
+    self.isSending = NO;
+    NSLog(@"连接成功");
+    return 0;
+    
+Failed:
+    NSLog(@"连接失败");
+    PILI_RTMP_Close(_rtmp, &_error);
+    PILI_RTMP_Free(_rtmp);
+    [self clean];
+    return -1;
+}
+
+- (void)clean { // todo
+
+}
+
+#pragma mark -RTMP Send
 - (void)sendVideoFrame:(nullable VideoFrame *)frame {
     // todo 这里需要放到异步线程里面 以免影响主线程
     if (!frame) {

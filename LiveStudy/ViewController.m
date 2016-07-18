@@ -41,7 +41,9 @@
     self.videoEncoder = [[VideoEncoder alloc] init];
     self.videoEncoder.delegate = self;
     
+    // 连接RTMP
     self.rtmpSocket = [[StreamRtmpSocket alloc] init];
+    [self.rtmpSocket start];
     
     
     [self.videoCapture start];
